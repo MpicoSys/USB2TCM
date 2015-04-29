@@ -1,19 +1,22 @@
-# USB2TCM
+# USB2TCM Project
 ### About
-This USB2TCM application provides an API and examples for using TCM modules. 
-### Using USB2TCM
+USB2TCM Project is the firmware for MpicoSys USB2TCM - easy to use USB Mass Storage device which allows uploading images from computer to MpicoSys Timing Controller Module for Pervasive Displays (TCM.).
+USB2TCM device is available for purchase at MpicoSys distributors: DigiKey and Densipaper.
+USB2TCM Project provides an API and examples for using MpicoSys Timing Controller Modules (TCMs) for ePaper displays.
+### Using USB2TCM Device
+For detailed information please follow USB2TCM User's Guide available at http://www.pervasivedisplays.com/LiteratureRetrieve.aspx?ID=213097.
 #### Formatting
-When connected to PC for the first time, MSD has to be formated. Please note that no matter what OS user is working on, USB2TCM has to be formated in FAT file system. Linux user need to be very careful while formatting device because mistake may cause bricking the device and memory replacement will be needed.
+When connected to the computer for the first time Mass Storage Device (MSD) has to be formated. Please note that no matter what OS user is working on, USB2TCM has to be formated in FAT file system. Linux users need to be very careful while formatting the device as any mistake may cause bricking the device. In such case the memory chip replacement will be needed.
 #### Loading Image to TCM
-USB2TCM need to be attached to TCM on one side and to PC's USB port on other. When device mounts as mass storage device in operating system, simple copying prepared epd file onto removable drive is needed to upload and display image to TCM. It's possible to resend image when it's stored on memory pressing USB2TCM's button.
+USB2TCM needs to be attached to TCM on one side and to the computer's USB port on the other. When the device mounts as MSD in operating system, copying an EPD file to the removable drive results in uploading the image to TCM and displaying it on the ePaper display. It is possible to resend the stored image pressing USB2TCM button.
 
-Please remember that FAT file system simple implementation always loads the first file found on device's memory. When there are two files on removable drive, only image that was copied first will be displayed on TCM. To display another file first one have to be deleted, and display process will start right after file deletion.
+Please note that FAT file system simple implementation loads the first file found on the device memory. When there are two or more files in USB2TCM memory, only image that was copied first will be uploaded to TCM. To display another file first one has to be deleted, and display process will start right after file deletion.
 
 #### Errors
-When TCM is not detected or sending an image will be not successful USB2TCM will signal it with blinking LED. To try sending image again user needs only to press button again or copy file one more time.
+When TCM is not detected or sending image is not successful USB2TCM will signal it by blinking orange LED labeled "COM." To try sending image again user needs to press the button again or delete and copy the file one more time.
 
 ### FAT12 implementation
-Simple parsing of fat was implemented to search for files stored on mass storage device. Different oeprating systems format mass storage device memory in slight different way, so searching algorithm had to be implemented. This algorithm returns address of file contents in external memory. Following list shows how the algorithm works in general. 
+Simple parsing of FAT was implemented to search for files stored on mass storage device. Different operating systems format mass storage device memory in slightly different way, so searching algorithm had to be implemented. This algorithm returns address of file contents in external memory. The following list shows how the algorithm works in general. 
 
 1. Read data about the file system. 
 
@@ -53,7 +56,4 @@ License
 
 This application is licensed under the FreeBSD
 
-### Version
-1.1
-### Todo's
- - Write Tests
+
