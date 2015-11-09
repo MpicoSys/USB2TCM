@@ -37,6 +37,7 @@
 
 #include "TCM_api.h"
 #include "TCM.h"
+#include "TCM_SendReceiveBlock.h"
 #include "Events.h"
 
 uint8_t display_update[]  = {0x24, 0x01, 0x00, 0x00, 0x00};
