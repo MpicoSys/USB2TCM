@@ -39,7 +39,7 @@ class TCM2312:
     """
     Class used to convert images TCM2 
     """
-    __tc__ = "TCM2-E312-320"
+    __tc__ = "TCM2-E312-220"
     filename_prefix = "E312_"
     filename_sufix = "_1bit"
 
@@ -116,7 +116,7 @@ class TCM2312:
 
 """
 Convert image to EPD file.
-Command line usage: TCM2-E312_2bit.py -i <inputfile> 
+Command line usage: TCM2-E312_1bit.py -i <inputfile> 
 """
 def main(argv):
     inputfile = ''
@@ -124,17 +124,17 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hi:",["ifile="])
     except getopt.GetoptError:
-        print 'TCM2-E312_2bit.py -i <inputfile>'
+        print 'TCM2-E312_1bit.py -i <inputfile>'
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'TCM2-E312_2bit.py -i <inputfile>'
+            print 'TCM2-E312_1bit.py -i <inputfile>'
             sys.exit()
         elif opt in ("-i", "--ifile"):
             inputfile = arg
 
     if not inputfile:
-        print 'usage: TCM2-E312_2bit.py -i <inputfile>'
+        print 'usage: TCM2-E312_1bit.py -i <inputfile>'
         sys.exit(2)
 
     print 'Input file is ', inputfile

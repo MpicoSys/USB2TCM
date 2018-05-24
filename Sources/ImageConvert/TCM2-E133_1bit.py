@@ -88,7 +88,7 @@ class TCM2133:
 
 """
 Convert image to EPD file.
-Command line usage: TCM2-E312_2bit.py -i <inputfile> 
+Command line usage: TCM2-E133_1bit.py -i <inputfile> 
 """
 def main(argv):
     inputfile = ''
@@ -96,17 +96,17 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hi:",["ifile="])
     except getopt.GetoptError:
-        print 'TCM2-E312_2bit.py -i <inputfile>'
+        print 'TCM2-E133_1bit.py -i <inputfile>'
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'TCM2-E312_2bit.py -i <inputfile>'
+            print 'TCM2-E133_1bit.py -i <inputfile>'
             sys.exit()
         elif opt in ("-i", "--ifile"):
             inputfile = arg
 
     if not inputfile:
-        print 'usage: TCM2-E312_2bit.py -i <inputfile>'
+        print 'usage: TCM2-E133_1bit.py -i <inputfile>'
         sys.exit(2)
 
     print 'Input file is ', inputfile

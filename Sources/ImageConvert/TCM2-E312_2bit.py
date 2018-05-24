@@ -39,7 +39,7 @@ class TCM2312:
     """
     Class used to convert images TCM2 
     """
-    __tc__ = "TCM22-E312-320"
+    __tc__ = "TCM22-E312-220"
     filename_prefix = "E312_"
     filename_sufix = "_2bit"
 
