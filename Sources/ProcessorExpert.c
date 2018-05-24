@@ -52,6 +52,7 @@
 /* Declaring of global variables */
 extern TMSD MassStorageDevice;
 LDD_TError error;
+extern uint8_t display_update[];
 
 typedef struct
 {
@@ -152,12 +153,15 @@ void checkBusytoHigh()
 	}
 }
 
+uint8_t tcm_drivescheme = 0x24;
+uint8_t tcm_framebuffer_slot = 0;
+
 /**
  * @note Finds the start address of the first file on the filesystem; returns 1 if file was found, 0 if no file was found
  * @param ileStartAddress File start address to find
  * @return Find status
  */
-uint8_t findFileStartAddress(uint32_t* fileStartAddress)
+uint8_t findFileStartAddress(uint32_t* fileStartAddress, uint32_t* controlFileStartAddress)
 {
     // Read Master Boot Record (sector 0)
     // ------------------------------------
@@ -189,10 +193,10 @@ uint8_t findFileStartAddress(uint32_t* fileStartAddress)
     uint8_t rootPageCounter = 0;                     // read rootd irectory in pages of size 0x400
  
     // Find first file
-    while (!fileFound && rootPageCounter < numRootPages) {
+    while (rootPageCounter < numRootPages) {
         uint8_t rootDirectoryEntryNumber = 0;
         EM_ReadData((uint8_t*) &upload_image2, addressRootDirectory + rootPageCounter * 0x400, 0x400);     
-        while (!fileFound && upload_image2[rootDirectoryEntryNumber * 32] != 0 && rootDirectoryEntryNumber < 32) {
+        while (upload_image2[rootDirectoryEntryNumber * 32] != 0 && rootDirectoryEntryNumber < 32) {
             // Byte  0 - 0xe5 is used to indicate deleted file
             // Byte 11 - Bit 0-3 are 0 if entry is a file, other values are used for dirctories, long file names, and so on.
             if (upload_image2[rootDirectoryEntryNumber * 32] != 0xe5 && ((upload_image2[rootDirectoryEntryNumber * 32 + 11] & 0x0f) == 0)) {
@@ -207,6 +211,16 @@ uint8_t findFileStartAddress(uint32_t* fileStartAddress)
                     // Very important to use Cluster size instead of sector size! Previous bug was created by that mistake.
                     *fileStartAddress = addressDataArea + (fileStartSector - 2) * numSectorsPerCluster * numBytesPerSector;
                 }
+                
+                if (upload_image2[rootDirectoryEntryNumber * 32 +8]=='E' && upload_image2[rootDirectoryEntryNumber * 32 +9]=='P' && upload_image2[rootDirectoryEntryNumber * 32 +10]=='C'){
+					// 20-21 First Logical Cluster Hi
+					// 26-27 First Logical Cluster Lo
+					// Ignore bytes 20 and 21 in FAT12 - no Logical Cluster consists only of 2 bytes.
+					fileStartSector = upload_image2[rootDirectoryEntryNumber * 32 + 27] * 256 + upload_image2[rootDirectoryEntryNumber * 32 + 26];
+				 
+					// Very important to use Cluster size instead of sector size! Previous bug was created by that mistake.
+					*controlFileStartAddress = addressDataArea + (fileStartSector - 2) * numSectorsPerCluster * numBytesPerSector;
+				}
             }
             rootDirectoryEntryNumber++;
         }
@@ -235,55 +249,52 @@ LDD_TError readAndSendEPD()
 	uint32_t image_shift = 0;
 	uint8_t fileDetected = 0;
 	uint32_t imageStart = 0x7000;
+	uint32_t controlFileStartAddress = 0;
 
-	fileDetected = findFileStartAddress(&imageStart);
+	fileDetected = findFileStartAddress(&imageStart, &controlFileStartAddress);
+	
+	if(controlFileStartAddress)
+	{
+		EM_ReadData((uint8_t*) &upload_image2, controlFileStartAddress, 16);
+		uint32_t len = upload_image2[0];
+		if(len > 0)
+		{
+			tcm_drivescheme = upload_image2[1];
+		}
+		if(len > 1)
+		{
+			tcm_framebuffer_slot = upload_image2[2];
+		}
+	}
+	else
+	{
+		tcm_drivescheme = 0x24;
+		tcm_framebuffer_slot = 0; 
+	}
+	
+	display_update[0] = tcm_drivescheme;
+	upload_image[2] = tcm_framebuffer_slot;
+	display_update[2] = tcm_framebuffer_slot;
 	
 	if (fileDetected == 1)
 	{
 
 		EM_ReadData((uint8_t*) &upload_image2, imageStart, 400);  
-
-		if (upload_image2[0] == 0x3A)      //For TCM 7,4''
+		
+		uint16_t res_x, res_y, color_bit;
+		
+		res_x = upload_image2[1] * 256 + upload_image2[2];
+		res_y = upload_image2[3] * 256 + upload_image2[4];
+		color_bit = upload_image2[5];
+		ImageDatatoSend = res_x * res_y / 8;
+		if(color_bit)
 		{
-			ImageDatatoSend = (480*800)/8+16;
-			image_shift = 0;
+			ImageDatatoSend *= color_bit;
 		}
-		else if (upload_image2[0] == 0x33) //For TCM 4,41''
-		{
-			ImageDatatoSend = (400*300)/8+16;
-			image_shift = 0;
-		}
-		else if (upload_image2[0] == 0x31) //For TCM 1,44''
-		{
-			ImageDatatoSend = (128*96)/8+16;
-			image_shift = 0;
-		}
-		else if (upload_image2[0] == 0x18) //For TCM 6,0''
-		{
-			ImageDatatoSend = (600*800)/8+16;
-			image_shift = 0;
-		}
-		else if (upload_image2[0] == 0x32) //For TCM 2,7''
-		{
-			ImageDatatoSend = (264*176)/8+16;
-			image_shift = 0;
-		}
-		else if (upload_image2[0] == 0x3D) //For TCM 10,2''
-		{
-			ImageDatatoSend = (1024*1280)/8+16;
-			image_shift = 0;
-		}
-		else if (upload_image2[0] == 0x3D) //For TCM 2,0''
-		{
-			ImageDatatoSend = (200*96)/8+16;
-			image_shift = 0;
-		}
-		else
-		{
-			fileDetected = 0;
-		}
-
-		if (fileDetected == 1)
+		
+		ImageDatatoSend += 16; //image header
+		
+		if (ImageDatatoSend < EM_SETUP_MEMORY_SIZE_BYTES)
 		{
 			LED_ClrVal(NULL);
 			nr_block_flash=0;
@@ -328,38 +339,44 @@ LDD_TError readAndSendEPD()
 				}
 				nr_block_flash++;
 			}
-			
-			if(USBTCM_error==0)
-			{
-				WAIT_Waitms(1);         //The period of this WAIT is different ~(x 0.5)
-				tcm_receive=TCM_DisplayUpdate();
-				if(tcm_receive != 0x90)
-				 {
-					errorSTOP();
-					return Result;
-				 }	
-				WAIT_Waitms(1);
-				checkBusy(); 			// Check Busy pin to low
-				if(USBTCM_error!=0)
-				{
-					return Result;
-				}
-				checkBusytoHigh();		// Check Busy pin to 
-				if(USBTCM_error!=0)
-				{
-					return Result;
-				}
-				WAIT_Waitms(2);
-				
-				tcm_receive=TCM_GetAnswer();
-				if(tcm_receive != 0x90)
-				 {
-					errorSTOP();
-					return Result;
-				 }	
-			}
 		}
 	}
+	else
+	{
+		//if there was no upload then give time for the TCM to start-up (upload is starting with a delay)
+		WAIT_Waitms(20); 
+	}
+	
+	if((USBTCM_error == 0) && (fileDetected || controlFileStartAddress))
+	{
+		WAIT_Waitms(1);         //The period of this WAIT is different ~(x 0.5)
+		tcm_receive=TCM_DisplayUpdate();
+		if(tcm_receive != 0x90 && fileDetected) //check response for upload command
+		 {
+			errorSTOP();
+			return Result;
+		 }	
+		WAIT_Waitms(1);
+		checkBusy(); 			// Check Busy pin to low
+		if(USBTCM_error!=0)
+		{
+			return Result;
+		}
+		checkBusytoHigh();		// Check Busy pin to 
+		if(USBTCM_error!=0)
+		{
+			return Result;
+		}
+		WAIT_Waitms(2);
+		
+		tcm_receive=TCM_GetAnswer();
+		if(tcm_receive != 0x90)
+		 {
+			errorSTOP();
+			return Result;
+		 }	
+	}
+	
 	possibleFile = 0;
 	TCM_disable();
 	return Result;

@@ -1,16 +1,15 @@
 # USB2TCM Project
 ## About
-USB2TCM Project is the firmware for MpicoSys USB2TCM - easy to use USB Mass Storage device which allows uploading images from computer to MpicoSys Timing Controller Module for Pervasive Displays (TCM.).
-USB2TCM device is available for purchase at MpicoSys distributors: DigiKey and Densipaper.
-USB2TCM Project provides an API and examples for using MpicoSys Timing Controller Modules (TCMs) for ePaper displays.
+USB2TCM Project is the firmware for MpicoSys USB2TCM - easy to use USB Mass Storage device which allows uploading images from computer to MpicoSys Timing Controller Module (TCM).
+USB2TCM Project provides an API and examples for using MpicoSys Timing Controller Modules (TCM) for ePaper displays.
 ## Using USB2TCM Device
-For detailed information please follow USB2TCM User's Guide available at http://www.pervasivedisplays.com/LiteratureRetrieve.aspx?ID=213097.
+For detailed information please follow USB2TCM User's Guide available in the Documentation catalog.
 ### Formatting
 When connected to the computer for the first time Mass Storage Device (MSD) has to be formated. Please note that no matter what OS user is working on, USB2TCM has to be formated in FAT file system. Linux users need to be very careful while formatting the device as any mistake may cause bricking the device. In such case the memory chip replacement will be needed.
 ### Loading Image to TCM
 USB2TCM needs to be attached to TCM on one side and to the computer's USB port on the other. When the device mounts as MSD in operating system, copying an EPD file to the removable drive results in uploading the image to TCM and displaying it on the ePaper display. It is possible to resend the stored image pressing USB2TCM button.
 
-Please note that FAT file system simple implementation loads the first file found on the device memory. When there are two or more files in USB2TCM memory, only image that was copied first will be uploaded to TCM. To display another file first one has to be deleted, and display process will start right after file deletion.
+Please note that FAT file system simple implementation loads the first file found on the device memory. Storing two or more EPD files in USB2TCM memory may result in operation error or image mismatch. To display another file first one has to be deleted, and display process will start right after file deletion.
 
 ### Errors
 When TCM is not detected or sending image is not successful USB2TCM will signal it by blinking orange LED labeled "COM." To try sending image again user needs to press the button again or delete and copy the file one more time.

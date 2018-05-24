@@ -1,0 +1,9 @@
+TCM-EXXX_Xbit.py:
+ * tested on Python 2.7.12, Win7 64bit
+ * requires PIL module: pip install pillow==4.0.0
+
+bcl_tcm.exe 
+ * compiled for windows bcl.exe tool from Basic Compression Library: http://bcl.comli.eu/download-en.html version 1.2.0
+ * the only source code change was to define maximum offset (limited by TCM RAM size) to 64kBytes:
+   #define LZ_MAX_OFFSET 8*2*4096
+
